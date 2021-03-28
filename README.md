@@ -10,6 +10,14 @@ The hardware components that have been used for this project are :
 * Himax HM01B0 visual camera 
 * Lepton Flir v2.0 infra-red camera 
 
+# Code 
+The code is mainly splitted into 2 separate libraries
+* Streaming_STM  
+   - C++ application for reading the data transmitted from the STM and displaying the image on screen
+* Camera_STM 
+   - STM code developed in the CubeIDE environment for reading the data captured by the two cameras. 
+   - Further distinction is made for code which is generic-purpose and code which is specific for a single camera  
+
 # Results 
 Video footage of the working prototype can be found at the following link : 
 
