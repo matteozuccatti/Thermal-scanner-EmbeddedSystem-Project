@@ -10,5 +10,10 @@ The hardware components that have been used for this project are :
 * Himax HM01B0 visual camera 
 * Lepton Flir v2.0 infra-red camera 
 
+# Results 
+Video footage of the working prototype can be found at the following link : 
+...
+Mockup still images can be found in the folder `./images/` of this repository. 
+
 # Mentions 
 The code for the Lepton library has been highly inspired by the work of NachtRaveVL (https://github.com/NachtRaveVL/Lepton-FLiR-Arduino). 
