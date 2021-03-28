@@ -10,14 +10,23 @@ int StreamingMode::numCam = 0;
 int main() {
 
 	PrintTitle(); 
+/*
+ Define the type of camera you are using 
 
-	// HM01B0_QQVGA_BW    HM01B0_QVGA_BW   
-	// LeptonFlir_BW      LeptonFlir_C  
-	// TERMOSCAN_HM01B0   TERMOSCAN_Lepton  
-	// NO_CAM
+ 1 - LeptonFlir_BW		Lepton Flir black and white 
+ 2 - LptonFlir_C		Lepton Flir colored 
+ 3 - HM01B0_QQVGA_BW	Himax QQVGA black and white
+ 4 - HM01B0_QQVGA_C		Himax QQVGA colored (not implemented yet)
+ 5 - HM01B0_QVGA_BW		Himax QVGA black and white 
+ 6 - THERMOSCAN			Thermal scanner -> fused image from STM 
+ 7 - THERMOSCAN_HM01B0	Thermal scanner -> single Himax image (always 1st)
+ 8 - THERMOSCAN_Lepton	Thermal scanner -> single Lepton image (always 2nd)
+     
+	 NO_CAM				no secondary camera
 
+  */
 	StreamingMode stream(LeptonFlir_C);
-	stream.Mult(9); 
+	stream.Mult(9);	 // change scaling of the displayed image 
 	StreamingMode stream2(NO_CAM);
 	stream2.Mult(3);
 
@@ -41,10 +50,8 @@ int main() {
 	int frameNumber = 0;
 
 	while (1) {
-		
-		
+		// Reading data from UART 
 		if (stream.GetCam() != TERMOSCAN) {
-
 			int i = 0;
 			// LOADING DATA CAM 1 
 			while (i < stream.MatrixH() && ReadFile(hSerial, stream.ReadBuff(), stream.Bytes2Read(), &dwBytesRead, NULL)) {
@@ -59,7 +66,6 @@ int main() {
 					stream.CreateBackground();
 				}
 				stream.UpdateBackground();
-
 				if (stream.GetFrameN() > 2 && DetectMotion(stream.BackgroundImg, stream.UartPixelMatrix)) {
 					std::cout << "Frame n. " << std::setw(2) << frameNumber++ << "  -  MOTION DETECTED" << "\r";
 				}
@@ -83,7 +89,7 @@ int main() {
 			}
 		}
 		else {
-
+			// TERMOSCAN -> image fused by STM 
 			long int p = 0; 
 			while (p < stream.SizeMatrix() && ReadFile(hSerial, stream.ReadBuff(), stream.Bytes2Read(), &dwBytesRead, NULL)) {
 				int row = (int)p / stream.MatrixW(); 
@@ -107,20 +113,20 @@ int main() {
 		// DISPLAY IMAGE 
 		if (stream.GetCam() != TERMOSCAN_HM01B0 && stream.GetCam() != TERMOSCAN_Lepton) {
 			DisplayImage(stream, stream.UartPixelMatrix, &bg);
+			// Cam 1
 			dsp.display(bg);
 			DisplayImage(stream2, stream2.UartPixelMatrix, &bg2);
 			if (stream.NumCam() > 1) {
+				// Cam 2 
 				dsp2.display(bg2);
 			}
 		}
 		else {
+			// Thermoscanner -> 2 separate cameras are fused into a single image 
 			DisplayImgTermoscanner(stream, stream.UartPixelMatrix, stream2, stream2.UartPixelMatrix, &bg);
 			dsp.display(bg); 
 		}
-		
-
 	}
 	
-
 	return 0; 
 }

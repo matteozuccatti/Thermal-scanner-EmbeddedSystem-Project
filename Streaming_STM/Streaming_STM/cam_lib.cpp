@@ -16,11 +16,11 @@ int GetImageH(camera mode) {
 	switch (mode) {
 	case LeptonFlir_BW:		return 60;  // Lepton BW
 	case LeptonFlir_C:		return 60;  // Lepton C
-	case HM01B0_QQVGA_BW:	return 122;  // HM01B0 BW 
-	case HM01B0_QQVGA_C:	return 122;  // HM01B0 C
-	case HM01B0_QVGA_BW:	return 244;  // HM01B0 BW QVGA
-	case TERMOSCAN:			return 122;  // TERMOSCAN
-	case TERMOSCAN_HM01B0:	return 122;  // Termoscan 1 
+	case HM01B0_QQVGA_BW:	return 122; // HM01B0 BW 
+	case HM01B0_QQVGA_C:	return 122; // HM01B0 C
+	case HM01B0_QVGA_BW:	return 244; // HM01B0 BW QVGA
+	case TERMOSCAN:			return 122; // TERMOSCAN
+	case TERMOSCAN_HM01B0:	return 122; // Termoscan 1 
 	case TERMOSCAN_Lepton:	return 0;   // Termoscan 2 
 	default: return 0;
 	}
@@ -29,11 +29,11 @@ int GetImageW(camera mode) {
 	switch (mode) {
 	case LeptonFlir_BW:		return 80;  // Lepton BW
 	case LeptonFlir_C:		return 80;  // Lepton C
-	case HM01B0_QQVGA_BW:	return 164;  // HM01B0 BW 
-	case HM01B0_QQVGA_C:	return 164;  // HM01B0 C
-	case HM01B0_QVGA_BW:	return 326;  // HM01B0 BW QVGA
-	case TERMOSCAN:			return 164;  // TERMOSCAN
-	case TERMOSCAN_HM01B0:	return 164;  // Termoscan 1 
+	case HM01B0_QQVGA_BW:	return 164; // HM01B0 BW 
+	case HM01B0_QQVGA_C:	return 164; // HM01B0 C
+	case HM01B0_QVGA_BW:	return 326; // HM01B0 BW QVGA
+	case TERMOSCAN:			return 164; // TERMOSCAN
+	case TERMOSCAN_HM01B0:	return 164; // Termoscan 1 
 	case TERMOSCAN_Lepton:	return 0;   // Termoscan 2 
 	default: return 0;
 	}
@@ -42,12 +42,12 @@ int GetMatrixH(camera mode) {
 	switch (mode) {
 	case LeptonFlir_BW:		return 60;  // Lepton BW
 	case LeptonFlir_C:		return 60;  // Lepton C
-	case HM01B0_QQVGA_BW:	return 122;  // HM01B0 BW 
-	case HM01B0_QQVGA_C:	return 122;  // HM01B0 C
-	case HM01B0_QVGA_BW:	return 244;  // HM01B0 BW QVGA
-	case TERMOSCAN:			return 122;  // TERMOSCAN
-	case TERMOSCAN_HM01B0:	return 122;  // Termoscan 1 
-	case TERMOSCAN_Lepton:	return 60;   // Termoscan 2 
+	case HM01B0_QQVGA_BW:	return 122; // HM01B0 BW 
+	case HM01B0_QQVGA_C:	return 122; // HM01B0 C
+	case HM01B0_QVGA_BW:	return 244; // HM01B0 BW QVGA
+	case TERMOSCAN:			return 122; // TERMOSCAN
+	case TERMOSCAN_HM01B0:	return 122; // Termoscan 1 
+	case TERMOSCAN_Lepton:	return 60;  // Termoscan 2 
 	default: return 0;
 	}
 }
@@ -157,8 +157,6 @@ void StreamingMode::Mult(int n) {
 void StreamingMode::UpdateBackground() {
 	std::vector<uint8_t>::iterator itrP = UartPixelMatrix.begin();
 	std::vector<uint8_t>::iterator itrB = BackgroundImg.begin();
-	//std::vector<uint8_t>::iterator itrV = BackgroundValue.begin();
-	//std::vector<uint8_t>::iterator itrS = BackgroundSTD.begin(); 
 	bool there_is_black = false; 
 	for (itrB; itrB < BackgroundImg.end(); itrP++, itrB++) {
 		*itrB = (int)(alpha * (*itrP) + (double)(1 - alpha) * (*itrB)); 
@@ -171,7 +169,7 @@ void StreamingMode::UpdateBackground() {
 
 void DisplayImage(StreamingMode str, std::vector<uint8_t>& UartPixelMatrix,  cimg_library::CImg <unsigned char>* bg) {
 
-	// GRAYSCALE SINGLE CAMERA 
+	// GRAYSCALE SINGLE CAMERAs 
 	if (str.GetCam() == LeptonFlir_BW || str.GetCam() == HM01B0_QQVGA_BW || str.GetCam() == HM01B0_QVGA_BW) {
 		std::vector<uint8_t>::iterator itr;
 		uint8_t r, g, b;
@@ -209,7 +207,7 @@ void DisplayImage(StreamingMode str, std::vector<uint8_t>& UartPixelMatrix,  cim
 		}
 	}
 
-	// TERMOSCAN 
+	// TERMOSCAN -> fused image form STM 
 	if (str.GetCam() == TERMOSCAN) {
 		std::vector<uint8_t>::iterator itr;
 		uint8_t r, g, b;
@@ -397,7 +395,7 @@ HANDLE init_UART() {
 	// OPEN THE PORT
 	HANDLE hSerial;
 
-	hSerial = CreateFileA("COM3",           //AVI COM 3, name of file I want to open, --> https://electronics.stackexchange.com/questions/58717/error-argument-of-type-cons-char-is-incompatible-with-parameters-of-type-l
+	hSerial = CreateFileA("COM3",           // name of file I want to open, --> https://electronics.stackexchange.com/questions/58717/error-argument-of-type-cons-char-is-incompatible-with-parameters-of-type-l
 		GENERIC_READ,// | GENERIC_WRITE,    // tells windows I want to read/write
 		0,                                  // should be 0  
 		0,                                  // should be 0 

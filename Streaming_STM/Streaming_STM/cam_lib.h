@@ -5,15 +5,15 @@
 
 // CAMERA MODES 
 enum camera {
-    NO_CAM = 0,
-    LeptonFlir_BW,
-    LeptonFlir_C,
-    HM01B0_QQVGA_BW,
-    HM01B0_QQVGA_C,
-    HM01B0_QVGA_BW,
-    TERMOSCAN, 
-    TERMOSCAN_HM01B0,   // two sets of images
-    TERMOSCAN_Lepton    // two sets of images 
+    NO_CAM = 0,         // no secondary camera
+    LeptonFlir_BW,      // Lepton Flir black and white 
+    LeptonFlir_C,       // Lepton Flir colored 
+    HM01B0_QQVGA_BW,    // Himax QQVGA black and white
+    HM01B0_QQVGA_C,     // Himax QQVGA colore (not implemented yet) 
+    HM01B0_QVGA_BW,     // Himax QVGA black and white 
+    TERMOSCAN,          // Thermal scanner -> fused image from STM 
+    TERMOSCAN_HM01B0,   // Thermal scanner -> single Himax image 
+    TERMOSCAN_Lepton    // Thermal scanner -> single Lepton image
 };
 int GetImageH(camera cam);
 int GetImageW(camera cam);
