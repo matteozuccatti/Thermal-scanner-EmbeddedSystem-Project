@@ -12,7 +12,9 @@ The hardware components that have been used for this project are :
 
 # Results 
 Video footage of the working prototype can be found at the following link : 
+
 ...
+
 Mockup still images can be found in the folder `./images/` of this repository. 
 
 # Mentions 
