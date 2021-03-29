@@ -18,9 +18,9 @@ int main() {
  3 - HM01B0_QQVGA_BW	Himax QQVGA black and white
  4 - HM01B0_QQVGA_C		Himax QQVGA colored (not implemented yet)
  5 - HM01B0_QVGA_BW		Himax QVGA black and white 
- 6 - THERMOSCAN			Thermal scanner -> fused image from STM 
- 7 - THERMOSCAN_HM01B0	Thermal scanner -> single Himax image (always 1st)
- 8 - THERMOSCAN_Lepton	Thermal scanner -> single Lepton image (always 2nd)
+ 6 - TERMOSCAN			Thermal scanner -> fused image from STM 
+ 7 - TERMOSCAN_HM01B0	Thermal scanner -> single Himax image (always 1st)
+ 8 - TERMOSCAN_Lepton	Thermal scanner -> single Lepton image (always 2nd)
      
 	 NO_CAM				no secondary camera
 
