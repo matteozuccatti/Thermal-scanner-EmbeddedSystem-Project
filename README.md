@@ -20,8 +20,7 @@ The code is mainly splitted into 2 separate libraries
 
 # Results 
 Video footage of the working prototype can be found at the following link : 
-
-...
+[Experimental video footage](https://www.youtube.com/watch?v=Bs92HlgQElU)
 
 Mockup still images can be found in the folder `./images/` of this repository. 
 
