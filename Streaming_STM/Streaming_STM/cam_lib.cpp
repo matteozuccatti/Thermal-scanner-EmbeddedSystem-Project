@@ -19,7 +19,6 @@ int GetImageH(camera mode) {
 	case HM01B0_QQVGA_BW:	return 122; // HM01B0 BW 
 	case HM01B0_QQVGA_C:	return 122; // HM01B0 C
 	case HM01B0_QVGA_BW:	return 244; // HM01B0 BW QVGA
-	case TERMOSCAN:			return 122; // TERMOSCAN
 	case TERMOSCAN_HM01B0:	return 122; // Termoscan 1 
 	case TERMOSCAN_Lepton:	return 0;   // Termoscan 2 
 	default: return 0;
@@ -32,7 +31,6 @@ int GetImageW(camera mode) {
 	case HM01B0_QQVGA_BW:	return 164; // HM01B0 BW 
 	case HM01B0_QQVGA_C:	return 164; // HM01B0 C
 	case HM01B0_QVGA_BW:	return 326; // HM01B0 BW QVGA
-	case TERMOSCAN:			return 164; // TERMOSCAN
 	case TERMOSCAN_HM01B0:	return 164; // Termoscan 1 
 	case TERMOSCAN_Lepton:	return 0;   // Termoscan 2 
 	default: return 0;
@@ -45,7 +43,6 @@ int GetMatrixH(camera mode) {
 	case HM01B0_QQVGA_BW:	return 122; // HM01B0 BW 
 	case HM01B0_QQVGA_C:	return 122; // HM01B0 C
 	case HM01B0_QVGA_BW:	return 244; // HM01B0 BW QVGA
-	case TERMOSCAN:			return 122; // TERMOSCAN
 	case TERMOSCAN_HM01B0:	return 122; // Termoscan 1 
 	case TERMOSCAN_Lepton:	return 60;  // Termoscan 2 
 	default: return 0;
@@ -58,7 +55,6 @@ int GetMatrixW(camera mode) {
 	case HM01B0_QQVGA_BW:	return 164;		// HM01B0 BW 
 	case HM01B0_QQVGA_C:	return 164;		// HM01B0 C
 	case HM01B0_QVGA_BW:	return 326;		// HM01B0 BW QVGA
-	case TERMOSCAN:			return 164*3;	// TERMOSCAN
 	case TERMOSCAN_HM01B0:	return 164;		// Termoscan 1 
 	case TERMOSCAN_Lepton:	return 80*3;	// Termoscan 2 
 	default: return 0;
@@ -83,10 +79,6 @@ uint8_t* GetReadBuff(camera mode) {
 	}
 	else if (mode == HM01B0_QVGA_BW) {
 		static uint8_t RB[326 + 1] = { 0 };
-		return RB;
-	}
-	else if (mode == TERMOSCAN) {
-		static uint8_t RB[164*3 +1 ] = { 0 };
 		return RB;
 	}
 	else if (mode == TERMOSCAN_HM01B0) {
@@ -118,19 +110,15 @@ StreamingMode::StreamingMode(camera _cam)
 
 	sizeMatrix = matrixH * matrixW; 
 	UartPixelMatrix.resize(sizeMatrix);
-	BackgroundImg.resize(sizeMatrix);
-	BackgroundValue.resize(sizeMatrix);
-	BackgroundSTD.resize(sizeMatrix); 
+
 
 	streamW = mult * imageW;
 	streamH = mult * imageH;
 	if(_cam!= 0 && (_cam!=TERMOSCAN_Lepton))numCam++;
-	if (_cam != 0) frameNumber = 0; 
 
 	readBuff = GetReadBuff(_cam); 
 	if(_cam!=0)	PrintSpecs(); 
 
-	
 }
 int StreamingMode::ImageH(void) { return imageH; }
 int StreamingMode::ImageW(void) { return imageW; }
@@ -144,9 +132,6 @@ const int StreamingMode::Bytes2Read() { return numBystes2Read; }
 int StreamingMode::NumCam() { return numCam; }
 int StreamingMode::GetMult() { return mult; }
 camera StreamingMode::GetCam() { return cam; }
-void StreamingMode::IncrementFrame(){ frameNumber++; }
-int StreamingMode::GetFrameN() { return frameNumber; }
-void StreamingMode::CreateBackground() { BackgroundImg = UartPixelMatrix; }
 void StreamingMode::SetAvg(bool v) { avg = v; }
 bool StreamingMode::GetAvg() { return avg; }
 void StreamingMode::Mult(int n) { 
@@ -154,87 +139,57 @@ void StreamingMode::Mult(int n) {
 	streamW = n * imageW; 
 	streamH = n * imageH; 
 }
-void StreamingMode::UpdateBackground() {
-	std::vector<uint8_t>::iterator itrP = UartPixelMatrix.begin();
-	std::vector<uint8_t>::iterator itrB = BackgroundImg.begin();
-	bool there_is_black = false; 
-	for (itrB; itrB < BackgroundImg.end(); itrP++, itrB++) {
-		*itrB = (int)(alpha * (*itrP) + (double)(1 - alpha) * (*itrB)); 
-		//B_t = alpha * I_t     + (1 - alpha) * B_(t-1); 
-		if (*itrB == 0) there_is_black = true; 
-	}
-	//if (there_is_black) std::cout << "New background with some black\n";
+void StreamingMode::SetSaveFrame(bool a) { saveFrame = a; }
+bool StreamingMode::GetSaveFrame() { return saveFrame; }
 
-}
 
 void DisplayImage(StreamingMode str, std::vector<uint8_t>& UartPixelMatrix,  cimg_library::CImg <unsigned char>* bg) {
-
-	// GRAYSCALE SINGLE CAMERAs 
 	if (str.GetCam() == LeptonFlir_BW || str.GetCam() == HM01B0_QQVGA_BW || str.GetCam() == HM01B0_QVGA_BW) {
-		std::vector<uint8_t>::iterator itr;
-		uint8_t r, g, b;
-		int Index = 0;
-		int MatrixWidth =str.MatrixW();
-		for (itr = UartPixelMatrix.begin(); itr < UartPixelMatrix.end(); itr++, Index++) {
-			r = *itr;
-			g = *itr;
-			b = *itr;
-			const unsigned char colorPixel[] = { r, g, b };
-			int row = (int)Index / MatrixWidth;
-			int col = (int)Index % MatrixWidth;
-			*bg->draw_rectangle(str.GetMult() * (col + 1), str.GetMult() * (row + 1), 
-				                str.GetMult() * col,       str.GetMult() * row, 
-				                colorPixel);
-		}
+		DisplayImageGrayScale(str, UartPixelMatrix, bg); 
 	}
-
-	// LEPTON FLIR COLOR 
+	
 	if (str.GetCam() == LeptonFlir_C) {
-		std::vector<uint8_t>::iterator itr;
-		uint8_t r, g, b;
-		int Index = 0;
-		int MatrixWidth = str.MatrixW();
-		for (itr = UartPixelMatrix.begin(); itr < UartPixelMatrix.end(); itr += 3, Index += 3) {
-			r = *itr;
-			g = *(itr + 1);
-			b = *(itr + 2);
-			const unsigned char colorPixel[] = { r, g, b };
-			int row = (int)Index / MatrixWidth;
-			int col = (int)((int)Index % MatrixWidth) / 3;
-			*bg->draw_rectangle(str.GetMult() * (col + 1), str.GetMult() * (row + 1),
-				str.GetMult() * col, str.GetMult() * row,
-				colorPixel);
-		}
+		DisplayImageRGB(str, UartPixelMatrix, bg); 
 	}
+}
 
-	// TERMOSCAN -> fused image form STM 
-	if (str.GetCam() == TERMOSCAN) {
-		std::vector<uint8_t>::iterator itr;
-		uint8_t r, g, b;
-		int Index = 0;
-		int MatrixWidth = str.MatrixW();
-		for (itr = UartPixelMatrix.begin(); itr < UartPixelMatrix.end(); itr += 3, Index += 3) {
-			int row = (int)Index / MatrixWidth;
-			int col = (int)((int)Index % MatrixWidth) / 3;
-			if (row > 31 && row < 91 && col>126 && col < 366) {
-				// COLOR IMG 
-				r = *itr;
-				g = *(itr + 1);
-				b = *(itr + 2);
-			}
-			else {
-				// BW 
-				r = *itr;
-				g = *itr;
-				b = *itr;
-			}
-			const unsigned char colorPixel[] = { r, g, b };
-			
-			*bg->draw_rectangle(str.GetMult() * (col + 1), str.GetMult() * (row + 1),
-				str.GetMult() * col, str.GetMult() * row,
-				colorPixel);
-		}
+void DisplayImageGrayScale(StreamingMode str, std::vector<uint8_t>& UartPixelMatrix, cimg_library::CImg <unsigned char>* bg) {
+	// GRAYSCALE SINGLE CAMERAs 
+	std::vector<uint8_t>::iterator itr;
+	uint8_t r, g, b;
+	int Index = 0;
+	int MatrixWidth = str.MatrixW();
+	for (itr = UartPixelMatrix.begin(); itr < UartPixelMatrix.end(); itr++, Index++) {
+		r = *itr;
+		g = *itr;
+		b = *itr;
+		const unsigned char colorPixel[] = { r, g, b };
+		int row = (int)Index / MatrixWidth;
+		int col = (int)Index % MatrixWidth;
+		*bg->draw_rectangle(str.GetMult() * (col + 1), str.GetMult() * (row + 1),
+			str.GetMult() * col, str.GetMult() * row,
+			colorPixel);
 	}
+}
+
+void DisplayImageRGB(StreamingMode str, std::vector<uint8_t>& UartPixelMatrix, cimg_library::CImg <unsigned char>* bg) {
+	// LEPTON FLIR COLOR 
+	std::vector<uint8_t>::iterator itr;
+	uint8_t r, g, b;
+	int Index = 0;
+	int MatrixWidth = str.MatrixW();
+	for (itr = UartPixelMatrix.begin(); itr < UartPixelMatrix.end(); itr += 3, Index += 3) {
+		r = *itr;
+		g = *(itr + 1);
+		b = *(itr + 2);
+		const unsigned char colorPixel[] = { r, g, b };
+		int row = (int)Index / MatrixWidth;
+		int col = (int)((int)Index % MatrixWidth) / 3;
+		*bg->draw_rectangle(str.GetMult() * (col + 1), str.GetMult() * (row + 1),
+			str.GetMult() * col, str.GetMult() * row,
+			colorPixel);
+	}
+	
 }
 
 void DisplayImgTermoscanner(StreamingMode str1, std::vector<uint8_t>& UartPixelMatrix1, 
@@ -243,12 +198,6 @@ void DisplayImgTermoscanner(StreamingMode str1, std::vector<uint8_t>& UartPixelM
 	std::vector<uint8_t>::iterator itr1,itr2;
 	itr2 = UartPixelMatrix2.begin(); 
 	uint8_t r, g, b; 
-	uint8_t Rc, Rl, Rr, Ru, Rd;
-	uint8_t Gc, Gl, Gr, Gu, Gd;
-	uint8_t Bc, Bl, Br, Bu, Bd;
-	uint8_t Rlu, Rru, Rld, Rrd;
-	uint8_t Glu, Gru, Gld, Grd;
-	uint8_t Blu, Bru, Bld, Brd;
 	uint8_t r_temp, g_temp, b_temp;
 	int Index = 0; 
 	int MatrixWidth1 = str1.MatrixW();
@@ -297,19 +246,10 @@ void DisplayImgTermoscanner(StreamingMode str1, std::vector<uint8_t>& UartPixelM
 	}
 }
 
-bool DetectMotion(std::vector<uint8_t>& BackgroundImg, std::vector<uint8_t>& UartPixelMatrix) {
-	std::vector<uint8_t>::iterator itrP; 
-	std::vector<uint8_t>::iterator itrB = BackgroundImg.begin();
-	for (itrP = UartPixelMatrix.begin(); itrP < UartPixelMatrix.end(); itrP++, itrB++) {
-		if (std::abs(*itrP - *itrB) > 5) {
-			return true;
-		}
-	}
-	return false; 
-}
+
 
 uint8_t Average(std::vector<uint8_t>::iterator itr, int MatrixWidth, double c1, double c2) {
-	if ((c1 + 4 * c2) != 1.00) std::cout << "Error in Average coefficients\n"; 
+	if ((c1 + 4 * c2) != 1.00) std::cout << "Err    or in Average coefficients\n"; 
 	uint8_t c, l, r, u, d, temp; 
 	c = *(itr);
 	l = *(itr - 3);
@@ -363,7 +303,6 @@ void StreamingMode::PrintSpecs() {
 	case HM01B0_QQVGA_BW:		std::cout << "HM01B0 B&W ";					break;
 	case HM01B0_QQVGA_C:		std::cout << "HM01B0 Colour";				break;
 	case HM01B0_QVGA_BW:		std::cout << "HM01B0 B&W - HIGH RES";		break;
-	case TERMOSCAN:				std::cout << "Termoscanner";				break;
 	case TERMOSCAN_HM01B0:		std::cout << "Termoscanner - Himax  img";	break;
 	case TERMOSCAN_Lepton:		std::cout << "Termoscanner - Lepton img";	break;
 	default:					std::cout << "No camera mode detected";		break;
@@ -385,6 +324,18 @@ void PrintTitle() {
 	std::cout << "+--------------------------------------------------+\n\n";
 };
 
+
+void ReadCamData(StreamingMode& stream, HANDLE hSerial, int* frameNumber, DWORD dwBytesRead  ) {
+	int i = 0;
+	while (i < stream.MatrixH() && ReadFile(hSerial, stream.ReadBuff(), stream.Bytes2Read(), &dwBytesRead, NULL)) {
+		for (int j = 0; j < stream.Bytes2Read(); j++) {
+			stream.UartPixelMatrix[j + (i * stream.MatrixW())] = stream.readBuff[j];
+		}
+		i++;
+	}
+	*frameNumber += 1;
+	std::cout << "Frame n.  " << std::setw(2) << *frameNumber <<  "\r";
+}
 
 
 /*
