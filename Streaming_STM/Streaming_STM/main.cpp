@@ -58,23 +58,13 @@ int main() {
 		}
 
 
-		// --- DISPLAY IMAGE 
-		if (stream.GetCam() == TERMOSCAN_HM01B0 && stream2.GetCam() == TERMOSCAN_Lepton) {
-			// Thermoscanner -> 2 separate cameras are fused into a single image 
-			DisplayImgTermoscanner(stream, stream.UartPixelMatrix, stream2, stream2.UartPixelMatrix, &bg);
-			dsp.display(bg);
-		}
-		else {
-			// Single cameras 
-			// Cam 1 
-			DisplayImage(stream, stream.UartPixelMatrix, &bg);
-			dsp.display(bg);
-			if (stream.NumCam() > 1) {
-				DisplayImage(stream2, stream2.UartPixelMatrix, &bg2);
-				dsp2.display(bg2);
-			}
-		}
+		// --- DISPLAY IMAGE 		
+		DisplayImage2(stream,  stream.UartPixelMatrix,  &bg,
+					  stream2, stream2.UartPixelMatrix, &bg2); 
+		dsp.display(bg); 
+		if (stream.NumCam() > 1) dsp2.display(bg2); 
 
+		// --- SAVE DATA 
 		if (GetKeyState(VK_SPACE) & 0x8000) {
 			std::cout << "SPACE BAR PRESSED ! \n";
 		}

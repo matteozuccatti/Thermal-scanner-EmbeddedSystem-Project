@@ -37,7 +37,9 @@ public :
     void PrintSpecs();
     camera GetCam(); 
     void SetAvg(bool v); 
-    bool GetAvg(); 
+    bool GetAvg();
+    bool GetSaveFrame();
+    void SetSaveFrame(bool a); 
 
     std::vector<uint8_t> UartPixelMatrix;
     uint8_t* readBuff;
@@ -56,10 +58,11 @@ private:
 
 void PrintTitle();
 void DisplayImage(StreamingMode str, std::vector<uint8_t>& UartPixelMatrix, cimg_library::CImg <unsigned char>* bg);
-bool DetectMotion(std::vector<uint8_t>& BackgroundImg, std::vector<uint8_t>& UartPixelMatrix);
 void DisplayImgTermoscanner(StreamingMode str1, std::vector<uint8_t>& UartPixelMatrix1,
                             StreamingMode str2, std::vector<uint8_t>& UartPixelMatrix2,
                             cimg_library::CImg <unsigned char>* bg);
+void DisplayImage2(StreamingMode str,  std::vector<uint8_t>& UartPixelMatrix,  cimg_library::CImg <unsigned char>* bg,
+                   StreamingMode str2, std::vector<uint8_t>& UartPixelMatrix2, cimg_library::CImg <unsigned char>* bg2);
 uint8_t Average(std::vector<uint8_t>::iterator itr, int MatrixWidth, double c1, double c2);
 uint8_t Average(std::vector<uint8_t>::iterator itr, int MatrixWidth, double c1, double c2, double c3);
 uint8_t MedianFilter(std::vector<uint8_t>::iterator itr, int MatrixWidth);

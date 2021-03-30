@@ -152,7 +152,30 @@ void DisplayImage(StreamingMode str, std::vector<uint8_t>& UartPixelMatrix,  cim
 		DisplayImageRGB(str, UartPixelMatrix, bg); 
 	}
 }
+void DisplayImage2(StreamingMode str,  std::vector<uint8_t>& UartPixelMatrix,  cimg_library::CImg <unsigned char>* bg,
+				   StreamingMode str2, std::vector<uint8_t>& UartPixelMatrix2, cimg_library::CImg <unsigned char>* bg2) {
+	// CAM 1 
+	if (str.GetCam() == LeptonFlir_BW || str.GetCam() == HM01B0_QQVGA_BW || str.GetCam() == HM01B0_QVGA_BW) {
+		DisplayImageGrayScale(str, UartPixelMatrix, bg);
+	}
+	if (str.GetCam() == LeptonFlir_C) {
+		DisplayImageRGB(str, UartPixelMatrix, bg);
+	}
 
+	// CAM 2 
+	if (str2.GetCam() == LeptonFlir_BW || str2.GetCam() == HM01B0_QQVGA_BW || str2.GetCam() == HM01B0_QVGA_BW) {
+		DisplayImageGrayScale(str2, UartPixelMatrix2, bg2);
+	}
+	if (str2.GetCam() == LeptonFlir_C) {
+		DisplayImageRGB(str2, UartPixelMatrix2, bg2);
+	}
+
+	// TERMOSCAN 
+	if (str.GetCam() == TERMOSCAN_HM01B0 && str2.GetCam() == TERMOSCAN_Lepton) {
+		DisplayImgTermoscanner(str, UartPixelMatrix, str2, UartPixelMatrix2, bg); 
+	}
+
+}
 void DisplayImageGrayScale(StreamingMode str, std::vector<uint8_t>& UartPixelMatrix, cimg_library::CImg <unsigned char>* bg) {
 	// GRAYSCALE SINGLE CAMERAs 
 	std::vector<uint8_t>::iterator itr;
