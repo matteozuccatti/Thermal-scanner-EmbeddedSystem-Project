@@ -18,14 +18,13 @@ int main() {
  3 - HM01B0_QQVGA_BW	Himax QQVGA black and white
  4 - HM01B0_QQVGA_C		Himax QQVGA colored (not implemented yet)
  5 - HM01B0_QVGA_BW		Himax QVGA black and white 
- 6 - TERMOSCAN			Thermal scanner -> fused image from STM 
- 7 - TERMOSCAN_HM01B0	Thermal scanner -> single Himax image (always 1st)
- 8 - TERMOSCAN_Lepton	Thermal scanner -> single Lepton image (always 2nd)
+ 6 - TERMOSCAN_HM01B0	Thermal scanner -> single Himax image (always 1st)
+ 7 - TERMOSCAN_Lepton	Thermal scanner -> single Lepton image (always 2nd)
      
 	 NO_CAM				no secondary camera
 
   */
-	StreamingMode stream(LeptonFlir_C);
+	StreamingMode stream(LeptonFlir_BW);
 	stream.Mult(9);	 // change scaling of the displayed image 
 	StreamingMode stream2(NO_CAM);
 	stream2.Mult(3);
@@ -50,82 +49,36 @@ int main() {
 	int frameNumber = 0;
 
 	while (1) {
-		// Reading data from UART 
-		if (stream.GetCam() != TERMOSCAN) {
-			int i = 0;
-			// LOADING DATA CAM 1 
-			while (i < stream.MatrixH() && ReadFile(hSerial, stream.ReadBuff(), stream.Bytes2Read(), &dwBytesRead, NULL)) {
-				for (int j = 0; j < stream.Bytes2Read(); j++) {
-					stream.UartPixelMatrix[j + (i * stream.MatrixW())] = stream.readBuff[j];
-				}
-				i++;
-			}
-			// MOTION DETECTION CAM 1 
-			if (motion_detection) {
-				if (stream.GetFrameN() == 1) {
-					stream.CreateBackground();
-				}
-				stream.UpdateBackground();
-				if (stream.GetFrameN() > 2 && DetectMotion(stream.BackgroundImg, stream.UartPixelMatrix)) {
-					std::cout << "Frame n. " << std::setw(2) << frameNumber++ << "  -  MOTION DETECTED" << "\r";
-				}
-				else {
-					std::cout << "Frame n. " << std::setw(2) << frameNumber++ << "                    " << "\r";
-				}
-				stream.IncrementFrame();
-			}
-			std::cout << "Frame n. " << std::setw(2) << frameNumber++ << "                    " << "\r";
+		// --- READING UART DATA  
+		// Cam 1 
+		ReadCamData(stream, hSerial, &frameNumber, dwBytesRead); 
+		// Cam 2 
+		if (stream.NumCam() > 1 || stream2.GetCam()==TERMOSCAN_Lepton) {
+			ReadCamData(stream2, hSerial, &frameNumber, dwBytesRead);
+		}
 
 
-			// LOADING DATA CAM 2 
-			if (stream.NumCam() > 1 || stream2.GetCam()==TERMOSCAN_Lepton) {
-				i = 0;
-				while (i < stream2.MatrixH() && ReadFile(hSerial, stream2.ReadBuff(), stream2.Bytes2Read(), &dwBytesRead, NULL)) {
-					for (int j = 0; j < stream2.Bytes2Read(); j++) {
-						stream2.UartPixelMatrix[j + (i * stream2.MatrixW())] = stream2.readBuff[j];
-					}
-					i++;
-				}
-			}
+		// --- DISPLAY IMAGE 
+		if (stream.GetCam() == TERMOSCAN_HM01B0 && stream2.GetCam() == TERMOSCAN_Lepton) {
+			// Thermoscanner -> 2 separate cameras are fused into a single image 
+			DisplayImgTermoscanner(stream, stream.UartPixelMatrix, stream2, stream2.UartPixelMatrix, &bg);
+			dsp.display(bg);
 		}
 		else {
-			// TERMOSCAN -> image fused by STM 
-			long int p = 0; 
-			while (p < stream.SizeMatrix() && ReadFile(hSerial, stream.ReadBuff(), stream.Bytes2Read(), &dwBytesRead, NULL)) {
-				int row = (int)p / stream.MatrixW(); 
-				int col = (int)((int)p % stream.MatrixW()) / 3;
-
-				if (row > 31 && row < 91 && col>126 && col < 366) {
-					// COLOR IMG 
-					stream.UartPixelMatrix[p] = stream.readBuff[0]; 
-					p++; 
-				}else {
-					// BW IMG
-					stream.UartPixelMatrix[p] = stream.readBuff[0];
-					p += 3; 
-				}
-			}
-			std::cout << "Frame n. " << std::setw(2) << frameNumber++ << "\r";
-		}
-
-		
-
-		// DISPLAY IMAGE 
-		if (stream.GetCam() != TERMOSCAN_HM01B0 && stream.GetCam() != TERMOSCAN_Lepton) {
+			// Single cameras 
+			// Cam 1 
 			DisplayImage(stream, stream.UartPixelMatrix, &bg);
-			// Cam 1
 			dsp.display(bg);
-			DisplayImage(stream2, stream2.UartPixelMatrix, &bg2);
 			if (stream.NumCam() > 1) {
-				// Cam 2 
+				DisplayImage(stream2, stream2.UartPixelMatrix, &bg2);
 				dsp2.display(bg2);
 			}
 		}
-		else {
-			// Thermoscanner -> 2 separate cameras are fused into a single image 
-			DisplayImgTermoscanner(stream, stream.UartPixelMatrix, stream2, stream2.UartPixelMatrix, &bg);
-			dsp.display(bg); 
+
+		if (GetKeyState(VK_SPACE) & 0x8000) {
+			std::cout << "SPACE BAR PRESSED ! \n";
 		}
+
 	}
 	
 	return 0; 
