@@ -139,11 +139,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="include\core_func.cpp" />
+    <ClCompile Include="include\streaming_mode_class.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="cam_lib.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cam_lib.h" />
+    <ClInclude Include="include\core_func.h" />
+    <ClInclude Include="include\streaming_mode_class.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

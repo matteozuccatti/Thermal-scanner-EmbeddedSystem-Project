@@ -18,12 +18,18 @@
     <ClCompile Include="main.cpp">
       <Filter>File di origine</Filter>
     </ClCompile>
-    <ClCompile Include="cam_lib.cpp">
+    <ClCompile Include="include\core_func.cpp">
+      <Filter>File di risorse</Filter>
+    </ClCompile>
+    <ClCompile Include="include\streaming_mode_class.cpp">
       <Filter>File di risorse</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cam_lib.h">
+    <ClInclude Include="include\core_func.h">
+      <Filter>File di risorse</Filter>
+    </ClInclude>
+    <ClInclude Include="include\streaming_mode_class.h">
       <Filter>File di risorse</Filter>
     </ClInclude>
   </ItemGroup>
